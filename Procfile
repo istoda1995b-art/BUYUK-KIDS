@@ -1,1 +1,1 @@
-worker: python bot.py
+web: pip install -r requirements.txt && python bot.py
