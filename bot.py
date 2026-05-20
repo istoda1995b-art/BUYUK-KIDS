@@ -25,7 +25,7 @@ from database import Database
 # ========================
 # SOZLAMALAR
 # ========================
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8666809596:AAHfq9JtHvOyS-Qee4B2R_oAuk470r4Y2fY")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7630245766:AAHN4VwZS3yHsrerS53ezchKM9FRzjXiPsg")
 ADMIN_IDS = [286262755]
 DB_PATH = "shop.db"
 
@@ -65,6 +65,7 @@ class OrderStates(StatesGroup):
     entering_phone = State()
     entering_address = State()
     choosing_payment = State()
+    searching_product = State()  # Qidiruv holati
 
 class WorkerLoginStates(StatesGroup):
     entering_password = State()
@@ -129,7 +130,13 @@ def gen_password(length=8) -> str:
 def main_menu_keyboard(user_id: int):
     builder = ReplyKeyboardBuilder()
     builder.button(text="🛍️ Katalog")
-    builder.button(text="🛒 Savat")
+
+    # Savatchadagi mahsulotlar sonini ko'rsatish
+    cart_items = db.get_cart(user_id)
+    cart_count = sum(item['quantity'] for item in cart_items) if cart_items else 0
+    cart_label = f"🛒 Savat ({cart_count})" if cart_count > 0 else "🛒 Savat"
+    builder.button(text=cart_label)
+
     builder.button(text="📦 Buyurtmalarim")
     builder.button(text="📞 Aloqa")
     if is_admin(user_id):
@@ -233,6 +240,8 @@ async def show_catalog(message: types.Message, state: FSMContext):
         size_icon = " 📏" if cat['has_sizes'] else ""
         builder.button(text=f"📁 {cat['name']}{size_icon}", callback_data=f"cat_{cat['id']}")
     builder.adjust(2)
+    builder.button(text="🔍 Mahsulot qidirish", callback_data="search_product")
+    builder.adjust(2, 1)
 
     await message.answer(
         "📂 Kategoriyani tanlang:\n<i>(📏 — razmerlar mavjud)</i>",
@@ -253,23 +262,28 @@ async def show_products(callback: types.CallbackQuery, state: FSMContext):
 
     size_note = " (📏 razmer tanlanadi)" if cat['has_sizes'] else ""
     await callback.message.edit_text(
-        f"📁 <b>{cat['name']}</b>{size_note}\n\nMahsulotni tanlang:",
+        f"📁 <b>{cat['name']}</b>{size_note}\n"
+        f"<i>Jami {len(products)} ta mahsulot</i>\n\nMahsulotni tanlang:",
         parse_mode="HTML"
     )
 
-    for product in products:
+    for i, product in enumerate(products, 1):
+        stars = ""
+        price_line = f"💰 <b>{product['price']:,} so'm</b>"
+
         text = (
+            f"{'─'*20}\n"
             f"🏷️ <b>{product['name']}</b>\n"
-            f"💰 Narx: <b>{product['price']:,} so'm</b>\n"
+            f"{price_line}\n"
         )
         if product['description']:
-            text += f"📝 {product['description']}\n"
+            text += f"📝 <i>{product['description']}</i>\n"
         if product.get('sizes'):
-            preview = " | ".join(product['sizes'].split(","))
-            text += f"📏 Razmerlar: <b>{preview}</b>\n"
+            preview = " · ".join(product['sizes'].split(","))
+            text += f"📏 <b>{preview}</b>\n"
 
         builder = InlineKeyboardBuilder()
-        builder.button(text="🛒 Savatga", callback_data=f"add_{product['id']}")
+        builder.button(text="🛒 Savatga qo'shish", callback_data=f"add_{product['id']}")
 
         if product['photo_id']:
             await callback.message.answer_photo(
@@ -282,7 +296,9 @@ async def show_products(callback: types.CallbackQuery, state: FSMContext):
             await callback.message.answer(text, reply_markup=builder.as_markup(), parse_mode="HTML")
 
     builder_back = InlineKeyboardBuilder()
+    builder_back.button(text="🔍 Qidirish", callback_data="search_product")
     builder_back.button(text="🔙 Kategoriyalar", callback_data="back_to_cats")
+    builder_back.adjust(2)
     await callback.message.answer("⬆️ Yuqoridagi mahsulotlar", reply_markup=builder_back.as_markup())
     await state.set_state(OrderStates.choosing_product)
 
@@ -290,6 +306,84 @@ async def show_products(callback: types.CallbackQuery, state: FSMContext):
 async def back_to_categories(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.delete()
     await show_catalog(callback.message, state)
+
+# ========================
+# MAHSULOT QIDIRISH
+# ========================
+@dp.callback_query(F.data == "search_product")
+async def search_product_start(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.answer(
+        "🔍 <b>Qidirish</b>\n\n"
+        "Mahsulot nomini yoki uning bir qismini yozing:\n"
+        "<i>Masalan: futbolka, ko'ylak, 86...</i>",
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard=[[KeyboardButton(text="❌ Bekor qilish")]],
+            resize_keyboard=True
+        ),
+        parse_mode="HTML"
+    )
+    await state.set_state(OrderStates.searching_product)
+    await callback.answer()
+
+@dp.message(OrderStates.searching_product, F.text)
+async def do_search_product(message: types.Message, state: FSMContext):
+    if message.text == "❌ Bekor qilish":
+        await state.clear()
+        await message.answer("Bekor qilindi.", reply_markup=main_menu_keyboard(message.from_user.id))
+        return
+
+    query = message.text.strip()
+    if len(query) < 2:
+        await message.answer("❗ Kamida 2 ta harf kiriting.")
+        return
+
+    results = db.search_products(query)
+
+    if not results:
+        builder = InlineKeyboardBuilder()
+        builder.button(text="🔍 Qayta qidirish", callback_data="search_product")
+        builder.button(text="📂 Katalogga qaytish", callback_data="back_to_cats")
+        builder.adjust(1)
+        await message.answer(
+            f"😔 <b>«{query}»</b> bo'yicha hech narsa topilmadi.\n\nBoshqa nom kiriting.",
+            reply_markup=builder.as_markup(),
+            parse_mode="HTML"
+        )
+        await state.clear()
+        return
+
+    await message.answer(
+        f"🔍 <b>«{query}»</b> bo'yicha {len(results)} ta natija:",
+        reply_markup=main_menu_keyboard(message.from_user.id),
+        parse_mode="HTML"
+    )
+
+    for product in results:
+        text = (
+            f"🏷️ <b>{product['name']}</b>\n"
+            f"📁 {product.get('cat_name', '')}\n"
+            f"💰 <b>{product['price']:,} so'm</b>\n"
+        )
+        if product.get('description'):
+            text += f"📝 <i>{product['description']}</i>\n"
+        if product.get('sizes'):
+            preview = " · ".join(product['sizes'].split(","))
+            text += f"📏 <b>{preview}</b>\n"
+
+        builder = InlineKeyboardBuilder()
+        builder.button(text="🛒 Savatga qo'shish", callback_data=f"add_{product['id']}")
+
+        if product.get('photo_id'):
+            await message.answer_photo(
+                photo=product['photo_id'],
+                caption=text,
+                reply_markup=builder.as_markup(),
+                parse_mode="HTML"
+            )
+        else:
+            await message.answer(text, reply_markup=builder.as_markup(), parse_mode="HTML")
+
+    await state.set_state(OrderStates.choosing_product)
 
 # ========================
 # RAZMER TANLASH
@@ -318,6 +412,11 @@ async def ask_size_or_add(callback: types.CallbackQuery, state: FSMContext):
         # Razmersiz — to'g'ridan savatga
         db.add_to_cart(callback.from_user.id, product_id, size=None)
         await callback.answer(f"✅ {product['name']} savatga qo'shildi!", show_alert=False)
+        # Klaviaturani yangilash (savat soni ko'rinsin)
+        await callback.message.answer(
+            "✅ Savatga qo'shildi! Xaridni davom ettiring yoki savatga o'ting.",
+            reply_markup=main_menu_keyboard(callback.from_user.id)
+        )
 
 @dp.callback_query(F.data == "size_cancel")
 async def size_cancel(callback: types.CallbackQuery, state: FSMContext):
@@ -335,12 +434,18 @@ async def confirm_size(callback: types.CallbackQuery, state: FSMContext):
 
     await callback.answer(f"✅ {product['name']} ({size}) savatga qo'shildi!")
     await callback.message.delete()
+    # Klaviaturani yangilash (savat soni ko'rinsin)
+    await callback.message.answer(
+        f"✅ <b>{product['name']}</b> [{size}] savatga qo'shildi!\nXaridni davom ettiring.",
+        reply_markup=main_menu_keyboard(callback.from_user.id),
+        parse_mode="HTML"
+    )
     await state.set_state(OrderStates.choosing_product)
 
 # ========================
 # SAVAT
 # ========================
-@dp.message(F.text == "🛒 Savat")
+@dp.message(F.text.startswith("🛒 Savat"))
 async def show_cart(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     cart_items = db.get_cart(user_id)
@@ -435,10 +540,55 @@ async def get_phone(message: types.Message, state: FSMContext):
     phone = message.contact.phone_number if message.contact else message.text
     await state.update_data(phone=phone)
     await message.answer(
-        "📍 Manzilingizni kiriting:\nMasalan: Toshkent, Chilonzor 5-kvartal, 12-uy",
-        reply_markup=cancel_keyboard()
+        "📍 <b>Manzilingizni kiriting:</b>\n\n"
+        "• 📌 Geolokatsiyangizni yuboring (aniqroq)\n"
+        "• Yoki qo'lda kiriting: Toshkent, Chilonzor 5-kvartal, 12-uy",
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard=[
+                [KeyboardButton(text="📌 Joylashuvimni yuborish", request_location=True)],
+                [KeyboardButton(text="❌ Bekor qilish")]
+            ],
+            resize_keyboard=True
+        ),
+        parse_mode="HTML"
     )
     await state.set_state(OrderStates.entering_address)
+
+@dp.message(OrderStates.entering_address, F.location)
+async def get_address_location(message: types.Message, state: FSMContext):
+    """Geolokatsiya orqali manzil qabul qilish"""
+    lat = message.location.latitude
+    lon = message.location.longitude
+    # Koordinatalarni matnli manzilga aylantirish (Nominatim - bepul)
+    import urllib.request, json as json_lib
+    try:
+        url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json&accept-language=uz"
+        req = urllib.request.Request(url, headers={"User-Agent": "TelegramShopBot/1.0"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json_lib.loads(resp.read())
+        address_parts = data.get("address", {})
+        road = address_parts.get("road", "")
+        suburb = address_parts.get("suburb", address_parts.get("neighbourhood", ""))
+        city = address_parts.get("city", address_parts.get("town", "Toshkent"))
+        parts = [p for p in [city, suburb, road] if p]
+        address_text = ", ".join(parts) if parts else data.get("display_name", f"{lat:.5f}, {lon:.5f}")
+    except Exception:
+        address_text = f"📌 Geolokatsiya: {lat:.5f}, {lon:.5f}"
+
+    await state.update_data(address=address_text, location_lat=lat, location_lon=lon)
+
+    builder = InlineKeyboardBuilder()
+    builder.button(text="💵 Naqd", callback_data="pay_cash")
+    builder.button(text="💳 Payme", callback_data="pay_payme")
+    builder.button(text="💳 Click", callback_data="pay_click")
+    builder.adjust(1)
+
+    await message.answer(
+        f"✅ Manzil qabul qilindi:\n📍 <b>{address_text}</b>\n\n💳 To'lov usulini tanlang:",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
+    await state.set_state(OrderStates.choosing_payment)
 
 @dp.message(OrderStates.entering_address, F.text)
 async def get_address(message: types.Message, state: FSMContext):
@@ -760,9 +910,40 @@ async def get_product_name(message: types.Message, state: FSMContext):
         menu = admin_menu_keyboard() if is_admin(message.from_user.id) else worker_menu_keyboard()
         await message.answer("Bekor qilindi.", reply_markup=menu)
         return
-    await state.update_data(product_name=message.text)
+
+    product_name = message.text.strip()
+
+    # Bir xil nomli mahsulot borligini tekshirish
+    if db.product_name_exists(product_name):
+        builder = InlineKeyboardBuilder()
+        builder.button(text="✅ Baribir qo'shish", callback_data=f"force_add_name:{product_name}")
+        builder.button(text="❌ Boshqa nom berish", callback_data="retry_product_name")
+        builder.adjust(1)
+        await message.answer(
+            f"⚠️ <b>«{product_name}»</b> nomli mahsulot allaqachon mavjud!\n\n"
+            f"Nima qilmoqchisiz?",
+            reply_markup=builder.as_markup(),
+            parse_mode="HTML"
+        )
+        return
+
+    await state.update_data(product_name=product_name)
     await message.answer("💰 Narxini kiriting (faqat raqam, so'mda):\nMasalan: 85000")
     await state.set_state(AdminStates.adding_product_price)
+
+@dp.callback_query(F.data == "retry_product_name", AdminStates.adding_product_name)
+async def retry_product_name(callback: types.CallbackQuery):
+    await callback.message.edit_text("🏷️ Boshqa nom kiriting:")
+    await callback.answer()
+
+@dp.callback_query(F.data.startswith("force_add_name:"))
+async def force_add_name(callback: types.CallbackQuery, state: FSMContext):
+    product_name = callback.data.split(":", 1)[1]
+    await state.update_data(product_name=product_name)
+    await callback.message.edit_text(f"✅ <b>«{product_name}»</b> nomi tasdiqlandi.", parse_mode="HTML")
+    await callback.message.answer("💰 Narxini kiriting (faqat raqam, so'mda):\nMasalan: 85000")
+    await state.set_state(AdminStates.adding_product_price)
+    await callback.answer()
 
 @dp.message(AdminStates.adding_product_price, F.text)
 async def get_product_price(message: types.Message, state: FSMContext):
