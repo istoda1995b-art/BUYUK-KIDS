@@ -227,6 +227,15 @@ class Database:
     # ========================
     # MAHSULOTLAR
     # ========================
+    def product_name_exists(self, name: str) -> bool:
+        """Aynan shu nomli faol mahsulot mavjudligini tekshiradi"""
+        with self.get_connection() as conn:
+            row = conn.execute(
+                "SELECT id FROM products WHERE LOWER(name)=LOWER(?) AND is_active=1",
+                (name.strip(),)
+            ).fetchone()
+            return row is not None
+
     def add_product(self, name: str, price: int, description: str,
                     category_id: int, photo_id: str = None, sizes: str = None) -> int:
         with self.get_connection() as conn:
@@ -267,6 +276,18 @@ class Database:
                 "SELECT p.*, c.name as cat_name, c.has_sizes FROM products p "
                 "LEFT JOIN categories c ON p.category_id=c.id "
                 "WHERE p.is_active=1 ORDER BY p.id"
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def search_products(self, query: str) -> List[Dict]:
+        """Nom bo'yicha mahsulot qidirish (qisman moslik)"""
+        with self.get_connection() as conn:
+            rows = conn.execute(
+                "SELECT p.*, c.name as cat_name, c.has_sizes FROM products p "
+                "LEFT JOIN categories c ON p.category_id=c.id "
+                "WHERE p.is_active=1 AND LOWER(p.name) LIKE LOWER(?) "
+                "ORDER BY p.name LIMIT 20",
+                (f"%{query.strip()}%",)
             ).fetchall()
             return [dict(row) for row in rows]
 
