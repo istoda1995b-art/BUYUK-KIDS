@@ -27,7 +27,7 @@ from database import Database
 # ========================
 BOT_TOKEN = os.getenv("BOT_TOKEN", "7630245766:AAHN4VwZS3yHsrerS53ezchKM9FRzjXiPsg")
 ADMIN_IDS = [286262755]
-DB_PATH = "shop.db"
+DB_PATH = os.getenv("DB_PATH", "shop.db")
 
 SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"]
 
