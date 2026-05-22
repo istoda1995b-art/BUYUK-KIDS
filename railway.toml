@@ -3,5 +3,3 @@ builder = "NIXPACKS"
 
 [deploy]
 startCommand = "python bot.py & gunicorn api:app --bind 0.0.0.0:8080 --workers 2"
-healthcheckPath = "/health"
-healthcheckTimeout = 30
