@@ -37,7 +37,7 @@ def get_products(cat_id):
                 "price": p["price"],
                 "description": p.get("description", ""),
                 "sizes": p.get("sizes", None),
-                "has_photo": bool(p.get("photo_id"))
+                "photo_url": p.get("photo_url", None)
             })
         return jsonify({"ok": True, "result": result})
     except Exception as e:
@@ -59,7 +59,7 @@ def search():
                 "description": p.get("description", ""),
                 "sizes": p.get("sizes", None),
                 "cat_name": p.get("cat_name", ""),
-                "has_photo": bool(p.get("photo_id"))
+                "photo_url": p.get("photo_url", None)
             })
         return jsonify({"ok": True, "result": result})
     except Exception as e:
