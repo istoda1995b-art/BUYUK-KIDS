@@ -100,7 +100,6 @@ class Database:
             print("✅ Migration: sizes ustuni qo'shildi")
         except Exception:
             pass  # Ustun allaqachon mavjud
-
         try:
             with self.get_connection() as conn:
                 conn.execute("ALTER TABLE products ADD COLUMN photo_url TEXT DEFAULT NULL")
