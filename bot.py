@@ -1028,8 +1028,11 @@ async def get_product_photo(message: types.Message, state: FSMContext):
         await message.answer("Bekor qilindi.", reply_markup=menu)
         return
     photo_id = None
-    if message.photo:
-        photo_id = message.photo[-1].file_id
+        photo_url = None
+        if message.photo:
+            photo_id = message.photo[-1].file_id
+            file = await bot.get_file(photo_id)
+            photo_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
 
     data = await state.get_data()
     sizes_str = data.get('product_sizes', None)
@@ -1040,7 +1043,9 @@ async def get_product_photo(message: types.Message, state: FSMContext):
         description=data['product_description'],
         category_id=data['category_id'],
         photo_id=photo_id,
-        sizes=sizes_str
+        photo_url=photo_url,
+        sizes=sizes_str,
+        
     )
 
     size_note = ""
