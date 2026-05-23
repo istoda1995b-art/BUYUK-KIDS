@@ -100,6 +100,12 @@ class Database:
             print("✅ Migration: sizes ustuni qo'shildi")
         except Exception:
             pass  # Ustun allaqachon mavjud
+            try:
+            with self.get_connection() as conn:
+                conn.execute("ALTER TABLE products ADD COLUMN photo_url TEXT DEFAULT NULL")
+            print("✅ Migration: photo_url ustuni qo'shildi")
+        except Exception:
+            pass
 
     # ========================
     # FOYDALANUVCHILAR & ROLLAR
@@ -237,11 +243,11 @@ class Database:
             return row is not None
 
     def add_product(self, name: str, price: int, description: str,
-                    category_id: int, photo_id: str = None, sizes: str = None) -> int:
+                    category_id: int, photo_id: str = None, photo_url: str = None, sizes: str = None) -> int:
         with self.get_connection() as conn:
             cur = conn.execute(
-                "INSERT INTO products (name, price, description, category_id, photo_id, sizes) VALUES (?,?,?,?,?,?)",
-                (name, price, description, category_id, photo_id, sizes)
+                "INSERT INTO products (name, price, description, category_id, photo_id, photo_url, sizes) VALUES (?,?,?,?,?,?,?)",
+                (name, price, description, category_id, photo_id, photo_url, sizes)
             )
             return cur.lastrowid
 
