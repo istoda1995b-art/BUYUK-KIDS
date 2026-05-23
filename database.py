@@ -94,13 +94,14 @@ class Database:
             """)
         print("✅ Database initialized")
         # Migration: eski DB ga sizes ustunini qo'shish
-        try:
+       try:
             with self.get_connection() as conn:
                 conn.execute("ALTER TABLE products ADD COLUMN sizes TEXT DEFAULT NULL")
             print("✅ Migration: sizes ustuni qo'shildi")
         except Exception:
             pass  # Ustun allaqachon mavjud
-            try:
+
+        try:
             with self.get_connection() as conn:
                 conn.execute("ALTER TABLE products ADD COLUMN photo_url TEXT DEFAULT NULL")
             print("✅ Migration: photo_url ustuni qo'shildi")
