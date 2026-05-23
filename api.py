@@ -3,7 +3,7 @@
 BUYUK KIDS — Flask API
 Veb-sahifa uchun kategoriya va mahsulotlarni beradi
 """
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 from database import Database
 import os
@@ -13,10 +13,13 @@ CORS(app)
  
 DB_PATH = os.getenv("DB_PATH", "shop.db")
 db = Database(DB_PATH)
- 
+
 # Bazani ishga tushirganda jadvallarni yaratish
 db.init_db()
- 
+
+@app.route("/")
+def index():
+    return send_file("buyukkids_shop.html")
 @app.route("/api/categories", methods=["GET"])
 def get_categories():
     try:
