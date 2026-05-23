@@ -93,13 +93,14 @@ class Database:
                 );
             """)
         print("✅ Database initialized")
-        # Migration: eski DB ga sizes ustunini qo'shish
-       try:
+
+        try:
             with self.get_connection() as conn:
                 conn.execute("ALTER TABLE products ADD COLUMN sizes TEXT DEFAULT NULL")
             print("✅ Migration: sizes ustuni qo'shildi")
         except Exception:
-            pass  # Ustun allaqachon mavjud
+            pass
+
         try:
             with self.get_connection() as conn:
                 conn.execute("ALTER TABLE products ADD COLUMN photo_url TEXT DEFAULT NULL")
@@ -107,9 +108,6 @@ class Database:
         except Exception:
             pass
 
-    # ========================
-    # FOYDALANUVCHILAR & ROLLAR
-    # ========================
     def add_user(self, telegram_id: int, full_name: str, username: str = None):
         with self.get_connection() as conn:
             conn.execute(
@@ -156,9 +154,6 @@ class Database:
                 (telegram_id,)
             )
 
-    # ========================
-    # ISHCHI PAROLLARI
-    # ========================
     def create_worker_password(self, password: str, created_by: int) -> int:
         with self.get_connection() as conn:
             cur = conn.execute(
@@ -168,7 +163,6 @@ class Database:
             return cur.lastrowid
 
     def use_worker_password(self, password: str, telegram_id: int) -> bool:
-        """Parolni tekshiradi. True = muvaffaqiyatli, foydalanuvchi worker bo'ldi"""
         with self.get_connection() as conn:
             row = conn.execute(
                 "SELECT * FROM worker_passwords WHERE password=? AND is_used=0",
@@ -196,9 +190,6 @@ class Database:
             ).fetchall()
             return [dict(row) for row in rows]
 
-    # ========================
-    # KATEGORIYALAR
-    # ========================
     def add_category(self, name: str, has_sizes: bool = False) -> int:
         with self.get_connection() as conn:
             cur = conn.execute(
@@ -230,11 +221,7 @@ class Database:
             conn.execute("UPDATE products SET is_active=0 WHERE category_id=?", (cat_id,))
             conn.execute("DELETE FROM categories WHERE id=?", (cat_id,))
 
-    # ========================
-    # MAHSULOTLAR
-    # ========================
     def product_name_exists(self, name: str) -> bool:
-        """Aynan shu nomli faol mahsulot mavjudligini tekshiradi"""
         with self.get_connection() as conn:
             row = conn.execute(
                 "SELECT id FROM products WHERE LOWER(name)=LOWER(?) AND is_active=1",
@@ -243,7 +230,8 @@ class Database:
             return row is not None
 
     def add_product(self, name: str, price: int, description: str,
-                    category_id: int, photo_id: str = None, photo_url: str = None, sizes: str = None) -> int:
+                    category_id: int, photo_id: str = None,
+                    photo_url: str = None, sizes: str = None) -> int:
         with self.get_connection() as conn:
             cur = conn.execute(
                 "INSERT INTO products (name, price, description, category_id, photo_id, photo_url, sizes) VALUES (?,?,?,?,?,?,?)",
@@ -252,7 +240,7 @@ class Database:
             return cur.lastrowid
 
     def update_product_field(self, product_id: int, field: str, value):
-        allowed = {'name', 'price', 'description', 'photo_id'}
+        allowed = {'name', 'price', 'description', 'photo_id', 'photo_url'}
         if field not in allowed:
             return
         with self.get_connection() as conn:
@@ -267,6 +255,7 @@ class Database:
                 (cat_id,)
             ).fetchall()
             return [dict(row) for row in rows]
+
     def get_product(self, product_id: int) -> Optional[Dict]:
         with self.get_connection() as conn:
             row = conn.execute(
@@ -286,7 +275,6 @@ class Database:
             return [dict(row) for row in rows]
 
     def search_products(self, query: str) -> List[Dict]:
-        """Nom bo'yicha mahsulot qidirish (qisman moslik)"""
         with self.get_connection() as conn:
             rows = conn.execute(
                 "SELECT p.*, c.name as cat_name, c.has_sizes FROM products p "
@@ -301,9 +289,6 @@ class Database:
         with self.get_connection() as conn:
             conn.execute("UPDATE products SET is_active=0 WHERE id=?", (product_id,))
 
-    # ========================
-    # SAVAT
-    # ========================
     def add_to_cart(self, user_id: int, product_id: int, size: str = None):
         with self.get_connection() as conn:
             existing = conn.execute(
@@ -339,9 +324,6 @@ class Database:
         with self.get_connection() as conn:
             conn.execute("DELETE FROM cart WHERE user_id=?", (user_id,))
 
-    # ========================
-    # BUYURTMALAR
-    # ========================
     def create_order(self, user_id: int, customer_name: str, phone: str,
                      address: str, payment: str, items: List[Dict],
                      total: int, discount_pct: int = 0, discount_amt: int = 0) -> int:
