@@ -947,12 +947,34 @@ async def edit_product_start(message: types.Message, state: FSMContext):
     if not products:
         await message.answer("Mahsulotlar yo'q.")
         return
+    await message.answer(
+        "🔍 <b>Mahsulot qidirish</b>\n\nNomini yozing (yoki bir qismini):",
+        reply_markup=cancel_keyboard(),
+        parse_mode="HTML"
+    )
+    await state.set_state(AdminStates.editing_product_select)
+
+@dp.message(AdminStates.editing_product_select, F.text)
+async def edit_product_search(message: types.Message, state: FSMContext):
+    if message.text == "❌ Bekor qilish":
+        await state.clear()
+        menu = admin_menu_keyboard() if is_admin(message.from_user.id) else worker_menu_keyboard()
+        await message.answer("Bekor qilindi.", reply_markup=menu)
+        return
+    query = message.text.strip()
+    results = db.search_products(query) if len(query) >= 1 else db.get_all_products()
+    if not results:
+        await message.answer(f"😔 <b>«{query}»</b> bo'yicha mahsulot topilmadi.\nQayta yozing:", parse_mode="HTML")
+        return
     builder = InlineKeyboardBuilder()
-    for p in products:
+    for p in results[:20]:
         builder.button(text=f"✏️ {p['name']} ({p['price']:,})", callback_data=f"edit_prod_{p['id']}")
     builder.adjust(1)
-    await message.answer("Tahrirlash uchun mahsulotni tanlang:", reply_markup=builder.as_markup())
-    await state.set_state(AdminStates.editing_product_select)
+    await message.answer(
+        f"🔍 <b>{len(results)} ta topildi</b>. Tanlang:",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
 
 @dp.callback_query(F.data.startswith("edit_prod_"), AdminStates.editing_product_select)
 async def edit_product_select(callback: types.CallbackQuery, state: FSMContext):
@@ -1037,11 +1059,34 @@ async def delete_product_start(message: types.Message, state: FSMContext):
     if not products:
         await message.answer("Mahsulotlar yo'q.")
         return
+    await message.answer(
+        "🔍 <b>O'chiriladigan mahsulotni qidiring:</b>\n\nNomini yozing:",
+        reply_markup=cancel_keyboard(),
+        parse_mode="HTML"
+    )
+    await state.set_state(AdminStates.deleting_product)
+
+@dp.message(AdminStates.deleting_product, F.text)
+async def delete_product_search(message: types.Message, state: FSMContext):
+    if message.text == "❌ Bekor qilish":
+        await state.clear()
+        menu = admin_menu_keyboard() if is_admin(message.from_user.id) else worker_menu_keyboard()
+        await message.answer("Bekor qilindi.", reply_markup=menu)
+        return
+    query = message.text.strip()
+    results = db.search_products(query) if len(query) >= 1 else db.get_all_products()
+    if not results:
+        await message.answer(f"😔 <b>«{query}»</b> topilmadi. Qayta yozing:", parse_mode="HTML")
+        return
     builder = InlineKeyboardBuilder()
-    for p in products:
+    for p in results[:20]:
         builder.button(text=f"❌ {p['name']} ({p['price']:,})", callback_data=f"del_prod_{p['id']}")
     builder.adjust(1)
-    await message.answer("O'chiriladigan mahsulotni tanlang:", reply_markup=builder.as_markup())
+    await message.answer(
+        f"🔍 <b>{len(results)} ta topildi</b>. O'chiriladigani tanlang:",
+        reply_markup=builder.as_markup(),
+        parse_mode="HTML"
+    )
 
 @dp.callback_query(F.data.startswith("del_prod_"))
 async def delete_product(callback: types.CallbackQuery):
