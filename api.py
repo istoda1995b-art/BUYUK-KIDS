@@ -75,6 +75,7 @@ def create_order():
         phone         = data.get("phone", "")
         address       = data.get("address", "")
         payment       = data.get("payment", "Naqd")
+        delivery      = data.get("delivery", "")
         items         = data.get("items", [])
         location_lat  = data.get("location_lat")
         location_lon  = data.get("location_lon")
@@ -135,12 +136,14 @@ def create_order():
                 f"\n🗺️ https://www.google.com/maps?q={location_lat},{location_lon}"
             )
 
+        delivery_line = f"\n🚚 Dastavka: {delivery}" if delivery else ""
         msg = (
             f"🆕 <b>YANGI BUYURTMA №{order_id}</b> (WEB)\n\n"
             f"👤 Mijoz: {customer_name}\n"
             f"📞 Tel: {phone}\n"
             f"📍 Manzil: {address}"
-            f"{geo_line}\n"
+            f"{geo_line}"
+            f"{delivery_line}\n"
             f"💳 To'lov: {payment}\n\n"
             f"🛒 Mahsulotlar:\n{items_text}\n\n"
             f"💰 Asl narx: {gross:,} so'm"
