@@ -9,6 +9,9 @@ import logging
 import os
 import random
 import string
+import aiohttp
+import aiofiles
+import uuid
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -32,7 +35,6 @@ DISCOUNT_TIER1_LIMIT = 500_000
 DISCOUNT_TIER1_PCT   = 5
 DISCOUNT_TIER2_PCT   = 10
 
-# Dastavka turlari
 DELIVERY_TYPES = {
     "del1": "📍 Qorasув bo'ylab — Bepul (haftada 2 marta)",
     "del2": "🚚 Samarkand ichida — Kelishilgan narxda",
@@ -46,6 +48,32 @@ bot     = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
 dp      = Dispatcher(storage=storage)
 db      = Database(DB_PATH)
+
+PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "photos")
+os.makedirs(PHOTOS_DIR, exist_ok=True)
+
+async def save_photo_locally(file_id: str) -> str:
+    try:
+        file     = await bot.get_file(file_id)
+        tg_url   = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
+        ext      = file.file_path.split(".")[-1]
+        filename = f"{uuid.uuid4().hex}.{ext}"
+        filepath = os.path.join(PHOTOS_DIR, filename)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(tg_url) as resp:
+                if resp.status == 200:
+                    data = await resp.read()
+                    async with aiofiles.open(filepath, "wb") as f:
+                        await f.write(data)
+        api_base = os.getenv("API_BASE_URL", "https://buyuk-kids-production.up.railway.app")
+        return f"{api_base}/photos/{filename}"
+    except Exception as e:
+        logger.error(f"Rasm saqlashda xato: {e}")
+        try:
+            file2 = await bot.get_file(file_id)
+            return f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file2.file_path}"
+        except:
+            return ""
 
 # ══════════════════════════════════════
 # STATES
