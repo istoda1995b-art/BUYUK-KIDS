@@ -928,8 +928,7 @@ async def get_product_photo(message: types.Message, state: FSMContext):
     photo_url = None
     if message.photo:
         photo_id  = message.photo[-1].file_id
-        file      = await bot.get_file(photo_id)
-        photo_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
+        photo_url = await save_photo_locally(photo_id)
     data = await state.get_data()
     db.add_product(
         name=data['product_name'], price=data['product_price'],
@@ -1044,8 +1043,7 @@ async def edit_product_photo(message: types.Message, state: FSMContext):
         return
     data      = await state.get_data()
     photo_id  = message.photo[-1].file_id
-    file      = await bot.get_file(photo_id)
-    photo_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
+    photo_url = await save_photo_locally(photo_id)
     db.update_product_field(data['edit_product_id'], 'photo_id',  photo_id)
     db.update_product_field(data['edit_product_id'], 'photo_url', photo_url)
     menu = admin_menu_keyboard() if is_admin(message.from_user.id) else worker_menu_keyboard()
