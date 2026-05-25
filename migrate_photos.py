@@ -8,7 +8,7 @@ import uuid
 import requests
 from database import Database
 
-BOT_TOKEN  = os.getenv("BOT_TOKEN", "7630245766:AAHN4VwZS3yHsrerS53ezchKM9FRzjXiPsg")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
 DB_PATH    = os.getenv("DB_PATH", "shop.db")
 API_BASE   = os.getenv("API_BASE_URL", "https://buyuk-kids-production.up.railway.app")
 PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "photos")
