@@ -23,7 +23,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 import asyncio
 from database import Database
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8666809596:AAEQjbHMjSZO5Tpnnh5UqtiXJW962O8nu6M")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7630245766:AAHN4VwZS3yHsrerS53ezchKM9FRzjXiPsg")
 ADMIN_IDS = [286262755]
 DB_PATH   = os.getenv("DB_PATH", "shop.db")
 
@@ -223,7 +223,7 @@ async def show_catalog(message: types.Message, state: FSMContext):
         if any(x in n for x in ['obuf','poyabzal','botinka']): return "👟"
         if any(x in n for x in ['velosiped','velo']): return "🚲"
         if any(x in n for x in ['samakat','skate']): return "🛴"
-        if any(x in n for x in ['o'yinchoq','o'yin','toy']): return "🧸"
+        if any(x in n for x in ["o'yinchoq","o'yin",'toy']): return "🧸"
         if any(x in n for x in ['yulka','stulchik','stul']): return "🪑"
         if any(x in n for x in ['kalyaska','aracha']): return "🍼"
         if any(x in n for x in ['mashinka','elektron','elektr']): return "🚗"
@@ -243,12 +243,9 @@ async def show_catalog(message: types.Message, state: FSMContext):
     builder.adjust(2, 1)
 
     text = (
-        "🏪 <b>BUYUK KIDS</b>
-"
-        "━━━━━━━━━━━━━━━
-"
-        "📂 Kategoriyani tanlang:
-"
+        "🏪 <b>BUYUK KIDS</b>\n"
+        "━━━━━━━━━━━━━━━\n"
+        "📂 Kategoriyani tanlang:\n"
         "<i>Mahsulot topish uchun qidiruvdan foydalaning</i>"
     )
     await message.answer(text, reply_markup=builder.as_markup(), parse_mode="HTML")
