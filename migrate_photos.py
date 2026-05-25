@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 """
 Eski mahsulot rasmlarini Telegram dan serverga ko'chirish
-Bu scriptni Railway da bir marta ishlatiladi
 """
 import os
 import uuid
 import requests
 from database import Database
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN  = os.getenv("BOT_TOKEN", "")
 DB_PATH    = os.getenv("DB_PATH", "shop.db")
 API_BASE   = os.getenv("API_BASE_URL", "https://buyuk-kids-production.up.railway.app")
 PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "photos")
@@ -32,14 +31,12 @@ def migrate():
         photo_id = p['photo_id']
         old_url  = p['photo_url'] or ''
 
-        # Agar allaqachon serverda saqlangan bo'lsa — o'tkazib yuborish
         if old_url.startswith(API_BASE + '/photos/'):
             print(f"  ✅ [{pid}] {name} — allaqachon serverda")
             ok += 1
             continue
 
         try:
-            # Telegram dan file_path olish
             r = requests.get(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/getFile",
                 params={"file_id": photo_id},
@@ -47,7 +44,7 @@ def migrate():
             )
             data = r.json()
             if not data.get("ok"):
-                print(f"  ❌ [{pid}] {name} — Telegram xatosi: {data}")
+                print(f"  ❌ [{pid}] {name} — {data.get('description','')}")
                 fail += 1
                 continue
 
@@ -57,26 +54,20 @@ def migrate():
             filename  = f"{uuid.uuid4().hex}.{ext}"
             filepath  = os.path.join(PHOTOS_DIR, filename)
 
-            # Rasmni yuklab olish
             img_r = requests.get(tg_url, timeout=15)
             if img_r.status_code != 200:
-                print(f"  ❌ [{pid}] {name} — Rasm yuklanmadi: {img_r.status_code}")
+                print(f"  ❌ [{pid}] {name} — yuklanmadi")
                 fail += 1
                 continue
 
-            # Serverga saqlash
             with open(filepath, 'wb') as f:
                 f.write(img_r.content)
 
-            # Bazani yangilash
             new_url = f"{API_BASE}/photos/{filename}"
             with db.get_connection() as conn:
-                conn.execute(
-                    "UPDATE products SET photo_url=? WHERE id=?",
-                    (new_url, pid)
-                )
+                conn.execute("UPDATE products SET photo_url=? WHERE id=?", (new_url, pid))
 
-            print(f"  ✅ [{pid}] {name} — saqlandi: {filename}")
+            print(f"  ✅ [{pid}] {name} — saqlandi")
             ok += 1
 
         except Exception as e:
@@ -86,7 +77,6 @@ def migrate():
     print(f"\n{'='*40}")
     print(f"✅ Muvaffaqiyatli: {ok} ta")
     print(f"❌ Xato: {fail} ta")
-    print(f"{'='*40}")
 
 if __name__ == "__main__":
     migrate()
