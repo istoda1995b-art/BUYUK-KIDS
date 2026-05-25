@@ -2,10 +2,13 @@
 BUYUK KIDS — Flask API
 Veb-sahifa uchun kategoriya va mahsulotlarni beradi
 """
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, request, send_file, send_from_directory
 from flask_cors import CORS
 from database import Database
 import os
+
+PHOTOS_DIR = os.path.join(os.path.dirname(__file__), "photos")
+os.makedirs(PHOTOS_DIR, exist_ok=True)
 
 app = Flask(__name__)
 CORS(app)
@@ -171,6 +174,38 @@ def create_order():
 
     except Exception as e:
         return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/api/photo/<int:product_id>", methods=["GET"])
+def get_photo(product_id):
+    """Telegram file_id orqali yangi photo_url olish"""
+    try:
+        import requests as req_lib
+        product = db.get_product(product_id)
+        if not product or not product.get('photo_id'):
+            return jsonify({"ok": False, "error": "Rasm yo'q"}), 404
+        BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+        photo_id  = product['photo_id']
+        # Telegram dan yangi URL olish
+        r = req_lib.get(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/getFile",
+            params={"file_id": photo_id},
+            timeout=5
+        )
+        data = r.json()
+        if data.get("ok"):
+            file_path = data["result"]["file_path"]
+            new_url   = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file_path}"
+            # Bazaga saqlash
+            db.update_product_field(product_id, 'photo_url', new_url)
+            return jsonify({"ok": True, "photo_url": new_url})
+        return jsonify({"ok": False, "error": "Telegram xatosi"}), 500
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+@app.route("/photos/<filename>")
+def serve_photo(filename):
+    """Serverda saqlangan rasmlarni beradi"""
+    return send_from_directory(PHOTOS_DIR, filename)
 
 @app.route("/health", methods=["GET"])
 def health():
