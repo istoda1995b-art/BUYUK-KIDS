@@ -214,14 +214,44 @@ async def show_catalog(message: types.Message, state: FSMContext):
     if not categories:
         await message.answer("😔 Hozircha mahsulotlar yo'q.")
         return
+
+    # Kategoriya nomi bo'yicha emoji avtomatik
+    def cat_emoji(name: str) -> str:
+        n = name.lower()
+        if any(x in n for x in ['basseyn','havuz','suv']): return "🏊"
+        if any(x in n for x in ['kiyim','bolalar','libos']): return "👕"
+        if any(x in n for x in ['obuf','poyabzal','botinka']): return "👟"
+        if any(x in n for x in ['velosiped','velo']): return "🚲"
+        if any(x in n for x in ['samakat','skate']): return "🛴"
+        if any(x in n for x in ['o'yinchoq','o'yin','toy']): return "🧸"
+        if any(x in n for x in ['yulka','stulchik','stul']): return "🪑"
+        if any(x in n for x in ['kalyaska','aracha']): return "🍼"
+        if any(x in n for x in ['mashinka','elektron','elektr']): return "🚗"
+        if any(x in n for x in ['rolik','sket','sport','myach']): return "⛸️"
+        return "📦"
+
     builder = InlineKeyboardBuilder()
     for cat in categories:
         size_icon = " 📏" if cat['has_sizes'] else ""
-        builder.button(text=f"📁 {cat['name']}{size_icon}", callback_data=f"cat_{cat['id']}")
+        emoji = cat_emoji(cat['name'])
+        builder.button(
+            text=f"{emoji} {cat['name']}{size_icon}",
+            callback_data=f"cat_{cat['id']}"
+        )
     builder.adjust(2)
-    builder.button(text="🔍 Mahsulot qidirish", callback_data="search_product")
+    builder.button(text="🔍 Qidirish", callback_data="search_product")
     builder.adjust(2, 1)
-    await message.answer("📂 Kategoriyani tanlang:", reply_markup=builder.as_markup(), parse_mode="HTML")
+
+    text = (
+        "🏪 <b>BUYUK KIDS</b>
+"
+        "━━━━━━━━━━━━━━━
+"
+        "📂 Kategoriyani tanlang:
+"
+        "<i>Mahsulot topish uchun qidiruvdan foydalaning</i>"
+    )
+    await message.answer(text, reply_markup=builder.as_markup(), parse_mode="HTML")
     await state.set_state(OrderStates.choosing_category)
 
 @dp.callback_query(F.data.regexp(r"^cat_\d+$"))
