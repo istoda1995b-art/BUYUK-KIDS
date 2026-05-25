@@ -23,7 +23,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 import asyncio
 from database import Database
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8666809596:AAEAY8Y5ltNa36uHrJyl-iuRDtdLSF0QlFY")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8962165521:AAHPFMAcSDFV2iZguNW_mUrXWSBtGZSFa7s")
 ADMIN_IDS = [286262755]
 DB_PATH   = os.getenv("DB_PATH", "shop.db")
 
