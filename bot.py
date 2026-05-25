@@ -772,18 +772,40 @@ async def delivery_report(message: types.Message):
     if not is_admin(message.from_user.id):
         return
     with db.get_connection() as conn:
-        orders = conn.execute(
+        delivered = conn.execute(
             "SELECT * FROM orders WHERE status='delivered' ORDER BY created_at DESC LIMIT 50"
         ).fetchall()
-    if not orders:
-        await message.answer("📭 Yetkazilgan buyurtmalar yo'q.")
-        return
-    total = sum(o['total'] for o in orders)
-    text  = f"🚚 <b>Yetkazilgan buyurtmalar: {len(orders)} ta</b>\n💰 Jami: {total:,} so'm\n\n"
-    for o in orders[:20]:
-        text += f"✅ №{o['id']} | {o['customer_name']} | {o['total']:,} so'm | {o['created_at'][:10]}\n"
-    if len(orders) > 20:
-        text += f"\n...va yana {len(orders)-20} ta"
+        pending = conn.execute(
+            "SELECT * FROM orders WHERE status IN ('pending','accepted') ORDER BY created_at DESC LIMIT 50"
+        ).fetchall()
+
+    # Yetkazilganlar
+    text = "🚚 <b>DASTAVKA HISOBOTI</b>\n\n"
+
+    text += f"✅ <b>Yetkazildi: {len(delivered)} ta</b>\n"
+    if delivered:
+        total_d = sum(o['total'] for o in delivered)
+        text += f"💰 Jami: {total_d:,} so'm\n\n"
+        for o in delivered[:15]:
+            text += f"  ✅ №{o['id']} | {o['customer_name']} | {o['total']:,} so'm | {o['created_at'][:10]}\n"
+        if len(delivered) > 15:
+            text += f"  ...va yana {len(delivered)-15} ta\n"
+    else:
+        text += "  Hozircha yo'q\n"
+
+    text += f"\n⏳ <b>Kutmoqda / Jarayonda: {len(pending)} ta</b>\n"
+    if pending:
+        total_p = sum(o['total'] for o in pending)
+        text += f"💰 Jami: {total_p:,} so'm\n\n"
+        status_map = {"pending": "⏳", "accepted": "🔄"}
+        for o in pending[:15]:
+            emoji = status_map.get(o['status'], "❓")
+            text += f"  {emoji} №{o['id']} | {o['customer_name']} | {o['total']:,} so'm | {o['created_at'][:10]}\n"
+        if len(pending) > 15:
+            text += f"  ...va yana {len(pending)-15} ta\n"
+    else:
+        text += "  Hozircha yo'q\n"
+
     await message.answer(text, parse_mode="HTML")
 
 # ══════════════════════════════════════
