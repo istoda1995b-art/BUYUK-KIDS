@@ -502,3 +502,63 @@ class Database:
             conn.execute(
                 "UPDATE orders SET status=? WHERE id=?", (status, order_id)
             )
+
+    # ══════════════════════════════════════
+    # SAYT MATNLARI va MUROJAATLAR (api.py uchun — oldin yetishmagan edi)
+    # ══════════════════════════════════════
+    def _ensure_site_tables(self):
+        with self.get_connection() as conn:
+            conn.executescript("""
+                CREATE TABLE IF NOT EXISTS site_content (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                );
+                CREATE TABLE IF NOT EXISTS contact_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    phone TEXT,
+                    message TEXT NOT NULL,
+                    is_read BOOLEAN DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+
+    def get_all_content(self) -> Dict[str, str]:
+        self._ensure_site_tables()
+        with self.get_connection() as conn:
+            rows = conn.execute("SELECT key, value FROM site_content").fetchall()
+            return {r["key"]: r["value"] for r in rows if r["value"] is not None}
+
+    def set_content_bulk(self, data: Dict[str, str]):
+        self._ensure_site_tables()
+        with self.get_connection() as conn:
+            conn.executemany(
+                "INSERT INTO site_content (key, value) VALUES (?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+                list(data.items()))
+
+    def create_contact_message(self, name: str, phone: str, message: str) -> int:
+        self._ensure_site_tables()
+        with self.get_connection() as conn:
+            cur = conn.execute(
+                "INSERT INTO contact_messages (name, phone, message) VALUES (?, ?, ?)",
+                (name, phone, message))
+            return cur.lastrowid
+
+    def list_contact_messages(self) -> List[Dict]:
+        self._ensure_site_tables()
+        with self.get_connection() as conn:
+            rows = conn.execute(
+                "SELECT id, name, phone, message, is_read, created_at "
+                "FROM contact_messages ORDER BY id DESC LIMIT 500").fetchall()
+            return [dict(r) for r in rows]
+
+    def mark_message_read(self, message_id: int):
+        self._ensure_site_tables()
+        with self.get_connection() as conn:
+            conn.execute("UPDATE contact_messages SET is_read = 1 WHERE id = ?", (message_id,))
+
+    def delete_contact_message(self, message_id: int):
+        self._ensure_site_tables()
+        with self.get_connection() as conn:
+            conn.execute("DELETE FROM contact_messages WHERE id = ?", (message_id,))
