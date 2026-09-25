@@ -1,0 +1,20 @@
+{% extends "admin/_layout.html" %}
+{% block body %}
+<div class="top"><h1>{{ cfg.title }} — {{ 'yangi' if not item else 'tahrirlash' }}</h1><a class="btn ghost" href="/site-admin/{{ entity }}">← Orqaga</a></div>
+<form class="card" method="post" enctype="multipart/form-data">
+{% for name, label, typ in cfg.fields %}{% set v = item[name] if item else None %}
+  <div class="f"><label>{{ label }}</label>
+  {% if typ == 'bool' %}<label style="font-weight:700"><input type="checkbox" name="{{ name }}" value="1" {{ 'checked' if (v if item else true) }}> Ha</label>
+  {% elif typ == 'image' %}{% if v %}<img class="thumb" src="{{ media_url(v) }}"><label style="font-weight:700"><input type="checkbox" name="{{ name }}__remove" value="1"> Rasmni o'chirish</label>{% endif %}<input type="file" name="{{ name }}" accept="image/*">
+  {% elif typ == 'textarea' %}<textarea name="{{ name }}">{{ v or '' }}</textarea>
+  {% elif typ == 'textarea-lg' %}<textarea class="lg" name="{{ name }}">{{ v or '' }}</textarea>
+  {% elif typ == 'color' %}<input type="color" name="{{ name }}" value="{{ v or '#3DB4F2' }}">
+  {% elif typ.startswith('select:') %}<select name="{{ name }}">{% for o in typ[7:].split('|') %}<option {{ 'selected' if v == o }}>{{ o }}</option>{% endfor %}</select>
+  {% elif typ in ('int','float') %}<input type="number" step="{{ 'any' if typ == 'float' else '1' }}" name="{{ name }}" value="{{ v if v is not none else (0 if typ=='int' else '') }}">
+  {% else %}<input type="text" name="{{ name }}" value="{{ v or '' }}">{% endif %}
+  </div>
+{% endfor %}
+{% if entity == 'stores' %}<p style="color:var(--muted);margin-bottom:14px">💡 Koordinata: Yandex Kartada joyni bosing → pastda chiqqan raqamlar (masalan 41.311, 69.279) — birinchisi lat, ikkinchisi lon.</p>{% endif %}
+<button class="btn">💾 Saqlash</button>
+</form>
+{% endblock %}

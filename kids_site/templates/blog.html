@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "_parts.html" import post_card, page_hero %}
+{% from "_icons.html" import clouds %}
+{% block title %}{{ S.blog_title }} — Buyuk Kids{% endblock %}
+{% block content %}
+{% call page_hero(S.blog_title, None, t, t('nav_blog')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap pull-up">
+  <div class="posts">{% for p in posts %}{{ post_card(p, L, lang) }}{% else %}<div class="empty">—</div>{% endfor %}</div>
+</div></section>
+{% endblock %}

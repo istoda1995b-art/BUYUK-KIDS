@@ -1,0 +1,12 @@
+{% extends "admin/_layout.html" %}
+{% block body %}
+<div class="top"><h1>Bosh panel</h1></div>
+<div class="grid" style="margin-bottom:20px">
+  {% for key, cfg in crud.items() %}<a class="card kpi" href="/site-admin/{{ key }}"><b>{{ counts[key] }}</b><span>{{ cfg.title }}</span></a>{% endfor %}
+  <a class="card kpi" href="/site-admin/submissions"><b style="color:var(--red)">{{ unread }}</b><span>Yangi arizalar</span></a>
+</div>
+<div class="card"><h2>Oxirgi arizalar</h2>
+<table><tr><th>Sana</th><th>Turi</th><th>Ism</th><th>Telefon</th><th>Xabar</th></tr>
+{% for s in subs %}<tr class="{{ 'unread' if not s.is_read }}"><td>{{ s.created_at.strftime('%d.%m %H:%M') if s.created_at }}</td><td><span class="pill">{{ s.kind }}</span></td><td>{{ s.name }}</td><td>{{ s.phone }}</td><td>{{ (s.subject ~ ' ' ~ s.message)|truncate(80) }}</td></tr>
+{% else %}<tr><td colspan="5">Hozircha ariza yo'q</td></tr>{% endfor %}</table></div>
+{% endblock %}

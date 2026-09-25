@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon, big_icon, clouds %}
+{% from "_parts.html" import post_card, stores_block %}
+{% set ext = 'target="_blank" rel="noopener"'|safe if order_ext else '' %}
+{% block content %}
+<section class="hero" style="background-image:url('{{ media_url(S.hero_image) if S.hero_image else '/static/img/hero-default.svg' }}')">
+  <div class="wrap">
+    <div class="hero-text">
+      <h1 class="rv">{{ S.hero_title }}</h1>
+      <p class="rv">{{ S.hero_subtitle }}</p>
+      <div class="btn-row rv">
+        <a href="{{ order_href }}" {{ ext }} class="btn btn-red">{{ icon('cart', 22) }} {{ S.order_label }}</a>
+        <a href="/loyalty" class="btn btn-white">{{ S.hero_button }} {{ icon('arrow', 22) }}</a>
+      </div>
+    </div>
+  </div>
+  {{ clouds() }}
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title rv">{{ S.features_title }} <span class="accent">{{ S.features_accent }}</span></h2>
+        <p class="section-sub rv">{{ S.features_subtitle }}</p>
+      </div>
+    </div>
+    <div class="stats">
+      {% for c in stats %}
+      <div class="stat rv" style="background:{{ c.color }}">
+        <b>{{ c.value|nbsp_num }}</b>
+        <span>{{ L(c, 'label') }}</span>
+        {% if c.image_id %}<img class="ic" src="{{ media_url(c.image_id) }}" alt="">{% else %}{{ big_icon(c.icon) }}{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if cats %}
+<section class="section cats-sec">
+  <img class="deco d1" src="/static/img/toys/ball.svg" alt="">
+  <img class="deco d2" src="/static/img/toys/rocket.svg" alt="">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="section-title rv">{{ S.categories_title }} <span class="accent">{{ S.categories_accent }}</span></h2>
+      <a class="link-arrow" href="{{ order_href }}" {{ ext }}>{{ S.order_label }} {{ icon('arrow', 22) }}</a>
+    </div>
+    <div class="cats">
+      {% for c in cats %}
+      <a class="cat rv" href="{{ c.link or order_href }}" {% if not c.link %}{{ ext }}{% endif %} style="--bg:{{ c.color }}">
+        <div class="cat-img">
+          <img src="{{ media_url(c.image_id) if c.image_id else '/static/img/toys/' ~ c.toy ~ '.svg' }}" alt="{{ L(c, 'name') }}" loading="lazy">
+        </div>
+        <span>{{ L(c, 'name') }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section" style="padding-top:0">
+  <div class="wrap">
+    <div class="cashback rv" id="cashback">
+      <div class="dots"><i style="width:300px;height:300px;left:-80px;bottom:-140px"></i><i style="width:160px;height:160px;left:44%;top:-60px"></i></div>
+      <div style="position:relative">
+        <h2>{{ S.cashback_title }}</h2>
+        <p>{{ S.cashback_text }}</p>
+        <a href="/loyalty" class="btn btn-white dark">{{ S.cashback_button }} {{ icon('arrow', 22) }}</a>
+      </div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="pct">{{ S.cashback_percent }}</div>
+          <div class="lbl">{{ t('cashback') }}</div>
+          {{ qr_svg(base_url ~ '/loyalty') }}
+          <img class="mini-logo" src="/static/img/logo.png" alt="">
+        </div>
+      </div>
+    </div>
+
+    <div class="delivery rv">
+      <div class="delivery-text">
+        <span class="chip">{{ icon('truck', 20) }} {{ 'Yetkazib berish' if lang == 'uz' else 'Доставка' }}</span>
+        <h2>{{ S.delivery_title }}</h2>
+        <p>{{ S.delivery_text }}</p>
+        <a href="{{ order_href }}" {{ ext }} class="btn btn-red">{{ icon('cart', 22) }} {{ S.order_label }}</a>
+      </div>
+      <div class="delivery-art">
+        <img class="t1" src="/static/img/toys/bear.svg" alt="">
+        <img class="t2" src="/static/img/toys/car.svg" alt="">
+        <img class="t3" src="/static/img/toys/blocks.svg" alt="">
+        <img class="t4" src="/static/img/toys/duck.svg" alt="">
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if posts %}
+<section class="section blog-sec" style="padding-top:40px">
+  <img class="deco d3" src="/static/img/toys/pyramid.svg" alt="">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="section-title rv">{{ S.blog_title }}</h2>
+      <a class="link-arrow" href="/blog">{{ t('all_posts') }} {{ icon('arrow', 22) }}</a>
+    </div>
+    <div class="posts">{% for p in posts %}{{ post_card(p, L, lang) }}{% endfor %}</div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section stores-sec">
+  <img class="deco d4" src="/static/img/toys/duck.svg" alt="">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="section-title rv">{{ S.stores_title }}</h2>
+      <a class="link-arrow" href="/stores">{{ t('nav_stores') }} {{ icon('arrow', 22) }}</a>
+    </div>
+    {{ stores_block(stores, map_url, L, t) }}
+  </div>
+</section>
+{% endblock %}

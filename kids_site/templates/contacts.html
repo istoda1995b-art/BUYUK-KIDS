@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_parts.html" import page_hero, sub_form, stores_block %}
+{% from "_icons.html" import clouds, icon %}
+{% block title %}{{ t('nav_contacts') }} — Buyuk Kids{% endblock %}
+{% block content %}
+{% call page_hero(t('nav_contacts'), None, t, t('nav_contacts')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap">
+  <div class="two-col" style="align-items:start">
+    <div class="rv">
+      <h2 class="section-title" style="margin-bottom:26px">{{ t('write_us') }}</h2>
+      <div class="steps">
+        {% if S.phone %}<a class="step info" href="tel:{{ S.phone|replace(' ','') }}">📞 {{ S.phone }}</a>{% endif %}
+        {% if S.email %}<a class="step info" href="mailto:{{ S.email }}">✉️ {{ S.email }}</a>{% endif %}
+        {% if S.address %}<div class="step info">📍 {{ S.address }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="card rv">{{ sub_form('contact', t, sent, ('message',)) }}</div>
+  </div>
+</div></section>
+<section class="section stores-sec"><div class="wrap">
+  <div class="section-head"><h2 class="section-title">{{ t('stores_on_map') }}</h2></div>
+  {{ stores_block(stores, map_url, L, t) }}
+</div></section>
+{% endblock %}

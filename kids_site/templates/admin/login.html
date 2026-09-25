@@ -1,0 +1,10 @@
+<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kirish — Buyuk Kids admin</title><link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css?v=1"></head><body>
+<div class="login"><form class="card" method="post">
+  <img src="/static/img/logo.png" alt="" style="height:90px;margin:0 auto 18px;display:block">
+  {% if error %}<div class="err">{{ error }}</div>{% endif %}
+  <div class="f"><label>Login</label><input name="username" required autofocus></div>
+  <div class="f"><label>Parol</label><input name="password" type="password" required></div>
+  <button class="btn" style="width:100%;justify-content:center">Kirish</button>
+</form></div></body></html>

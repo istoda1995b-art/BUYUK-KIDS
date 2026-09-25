@@ -1,0 +1,66 @@
+{% from "_icons.html" import icon %}
+
+{% macro post_card(p, L, lang) -%}
+{% set colors = ['#FFE3EA','#DDF3FF','#FFF1CC','#E3F6DC'] %}
+<a class="post-card rv" href="/blog/{{ p.slug }}">
+  <div class="img" {% if p.image_id %}style="background-image:url('{{ media_url(p.image_id) }}')"{% else %}style="background:{{ colors[p.id % 4] }}"{% endif %}>
+    {% if not p.image_id %}{% set toys = ['bear','pyramid','bottle','blocks','tshirt','duck','ball','car'] %}<div class="ph"><img src="/static/img/toys/{{ toys[p.id % 8] }}.svg" alt=""></div>{% endif %}
+  </div>
+  <div class="body">
+    <h3>{{ L(p, 'title') }}</h3>
+    <p>{{ L(p, 'excerpt') }}</p>
+    {% if p.created_at %}<span class="date">{{ p.created_at.strftime('%d.%m.%Y') }}</span>{% endif %}
+  </div>
+</a>
+{%- endmacro %}
+
+{% macro stores_block(stores, map_url, L, t) -%}
+<div class="stores-grid">
+  <div class="store-list">
+    {% for s in stores %}
+    <div class="store {{ 'on' if loop.first }}" data-store data-lat="{{ s.lat }}" data-lon="{{ s.lon }}">
+      <div class="ico">{{ icon('shop', 26) }}</div>
+      <div>
+        <h4>{{ s.name }}</h4>
+        <div class="addr">{{ L(s, 'address') }}</div>
+        <div class="meta">
+          <span>{{ icon('clock', 16) }}{{ s.hours }}</span>
+          {% if s.phone %}<a href="tel:{{ s.phone|replace(' ', '') }}">{{ icon('phone', 16) }} {{ s.phone }}</a>{% endif %}
+        </div>
+      </div>
+      <div class="rate">{{ icon('star', 18) }}{{ '%.1f'|format(s.rating) }}</div>
+    </div>
+    {% else %}
+    <div class="empty">—</div>
+    {% endfor %}
+  </div>
+  <div class="map">
+    {% if map_url %}<iframe id="mapFrame" src="{{ map_url }}" loading="lazy" allowfullscreen title="{{ t('stores_on_map') }}"></iframe>{% endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro sub_form(kind, t, sent, fields=()) -%}
+<form class="form" method="post" action="/submit/{{ kind }}" id="form">
+  {% if sent %}<div class="alert-ok">{{ t('sent_ok') }}</div>{% endif %}
+  <label>{{ t('name') }}<input name="name" required maxlength="200"></label>
+  <label>{{ t('phone') }}<input name="phone" type="tel" required maxlength="50" placeholder="+998 __ ___ __ __"></label>
+  {% if 'company' in fields %}<label>{{ t('company') }}<input name="company" maxlength="200"></label>{% endif %}
+  {% if 'subject' in fields %}<label>{{ t('position') }}<input name="subject" id="subjectInput" maxlength="300"></label>{% endif %}
+  {% if 'message' in fields %}<label>{{ t('message') }}<textarea name="message" maxlength="5000"></textarea></label>{% endif %}
+  <input class="hp" name="website" tabindex="-1" autocomplete="off">
+  <button class="btn btn-red" type="submit">{{ t('send') }} {{ icon('arrow', 22) }}</button>
+</form>
+{%- endmacro %}
+
+{% macro page_hero(title, sub, t, crumb) -%}
+<section class="page-hero">
+  <div class="bubbles"><i style="width:260px;height:260px;right:-60px;top:-80px"></i><i style="width:120px;height:120px;right:22%;top:40px"></i><i style="width:70px;height:70px;left:46%;bottom:90px"></i></div>
+  <div class="wrap" style="position:relative">
+    <div class="crumbs"><a href="/">{{ t('home') }}</a> / {{ crumb }}</div>
+    <h1>{{ title }}</h1>
+    {% if sub %}<p>{{ sub }}</p>{% endif %}
+  </div>
+  {{ caller() if caller }}
+</section>
+{%- endmacro %}

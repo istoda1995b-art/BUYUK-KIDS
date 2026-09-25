@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% from "_parts.html" import page_hero %}
+{% from "_icons.html" import clouds, big_icon %}
+{% block title %}{{ S.about_title }}{% endblock %}
+{% block content %}
+{% call page_hero(S.about_title, None, t, t('nav_about')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap">
+  <div class="two-col">
+    <div class="content rv">{{ S.about_body|nl2p }}</div>
+    <div class="rv">
+      {% if S.about_image %}<img class="rounded-img" src="{{ media_url(S.about_image) }}" alt="Buyuk Kids">
+      {% else %}<div class="rounded-img" style="background:linear-gradient(135deg,#FFF1CC,#DDF3FF);display:grid;place-items:center"><img src="/static/img/logo.png" alt="" style="width:60%"></div>{% endif %}
+    </div>
+  </div>
+  <div class="stats" style="margin-top:80px">
+    {% for c in stats %}
+    <div class="stat rv" style="background:{{ c.color }}"><b>{{ c.value|nbsp_num }}</b><span>{{ L(c, 'label') }}</span>
+      {% if c.image_id %}<img class="ic" src="{{ media_url(c.image_id) }}" alt="">{% else %}{{ big_icon(c.icon) }}{% endif %}</div>
+    {% endfor %}
+  </div>
+</div></section>
+{% endblock %}

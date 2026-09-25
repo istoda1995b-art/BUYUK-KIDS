@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_parts.html" import page_hero, sub_form %}
+{% from "_icons.html" import clouds %}
+{% block title %}{{ t('cashback') }} — Buyuk Kids{% endblock %}
+{% block content %}
+{% call page_hero(S.cashback_title, S.cashback_text, t, t('cashback')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap">
+  <div class="two-col" style="align-items:start">
+    <div class="rv">
+      <div style="font-size:clamp(80px,12vw,150px);font-weight:900;color:var(--red);line-height:1">{{ S.cashback_percent }}</div>
+      <div style="font-size:32px;font-weight:900;color:var(--blue);margin-bottom:30px">{{ t('cashback') }}</div>
+      <div class="steps">{% for line in S.loyalty_body.split('\n') if line.strip() %}<div class="step">{{ line.strip().lstrip('0123456789.) ') }}</div>{% endfor %}</div>
+    </div>
+    <div class="card rv"><h3 style="font-size:28px;margin-bottom:18px">{{ t('join_program') }}</h3>{{ sub_form('loyalty', t, sent) }}</div>
+  </div>
+</div></section>
+{% endblock %}

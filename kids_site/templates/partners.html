@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "_parts.html" import page_hero, sub_form %}
+{% from "_icons.html" import clouds %}
+{% block title %}{{ t('nav_partners') }} — Buyuk Kids{% endblock %}
+{% block content %}
+{% call page_hero(t('nav_partners'), None, t, t('nav_partners')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap">
+  <div class="two-col" style="align-items:start">
+    <div class="content rv">{{ S.partners_body|nl2p }}</div>
+    <div class="card rv">{{ sub_form('partner', t, sent, ('company','message')) }}</div>
+  </div>
+</div></section>
+{% endblock %}

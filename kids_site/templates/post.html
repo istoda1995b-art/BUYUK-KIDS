@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_parts.html" import post_card, page_hero %}
+{% from "_icons.html" import clouds, icon %}
+{% block title %}{{ L(post, 'title') }} — Buyuk Kids{% endblock %}
+{% block desc %}{{ L(post, 'excerpt') }}{% endblock %}
+{% block content %}
+{% call page_hero(L(post, 'title'), None, t, t('nav_blog')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap pull-up">
+  <article class="article">
+    {% if post.image_id %}<img class="cover" src="{{ media_url(post.image_id) }}" alt="{{ L(post, 'title') }}">{% endif %}
+    <div class="content">{{ L(post, 'body')|nl2p }}</div>
+    <a class="link-arrow" href="/blog" style="margin-top:20px">{{ t('back') }} {{ icon('arrow', 22) }}</a>
+  </article>
+</div></section>
+{% if more %}
+<section class="section" style="padding-top:0"><div class="wrap">
+  <div class="section-head"><h2 class="section-title">{{ S.blog_title }}</h2></div>
+  <div class="posts">{% for p in more %}{{ post_card(p, L, lang) }}{% endfor %}</div>
+</div></section>
+{% endif %}
+{% endblock %}

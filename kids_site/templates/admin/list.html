@@ -1,0 +1,14 @@
+{% extends "admin/_layout.html" %}
+{% block body %}
+<div class="top"><h1>{{ cfg.title }}</h1><a class="btn" href="/site-admin/{{ entity }}/new">＋ Qo'shish</a></div>
+<div class="card"><table>
+<tr>{% for c, l in cfg.cols %}<th>{{ l }}</th>{% endfor %}<th></th></tr>
+{% for it in items %}<tr>
+  {% for c, l in cfg.cols %}{% set v = it[c] %}<td>
+    {% if v is sameas true %}<span class="pill y">Ha</span>{% elif v is sameas false %}<span class="pill n">Yo'q</span>
+    {% elif c == 'color' %}<span class="pill" style="background:{{ v }};color:#fff">{{ v }}</span>{% else %}{{ v }}{% endif %}</td>{% endfor %}
+  <td><div class="actions"><a class="btn sm ghost" href="/site-admin/{{ entity }}/{{ it.id }}">✏️ Tahrirlash</a>
+  <form method="post" action="/site-admin/{{ entity }}/{{ it.id }}/delete" onsubmit="return confirm('O\'chirilsinmi?')"><button class="btn sm red">🗑</button></form></div></td>
+</tr>{% else %}<tr><td colspan="9">Bo'sh</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

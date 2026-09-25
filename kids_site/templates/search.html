@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "_parts.html" import page_hero, post_card %}
+{% from "_icons.html" import clouds, icon %}
+{% block content %}
+{% call page_hero(t('search') ~ (': «' ~ q ~ '»' if q else ''), None, t, t('search')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap">
+  <form action="/search" class="form card" style="grid-template-columns:1fr auto;margin-bottom:40px">
+    <input name="q" value="{{ q }}" placeholder="{{ t('search_ph') }}"><button class="btn btn-red">{{ icon('search', 22) }}</button>
+  </form>
+  {% if stores %}<div class="vac-list" style="margin-bottom:40px">{% for s in stores %}<a class="vac" href="/stores"><div><h3>{{ s.name }}</h3><p>{{ L(s,'address') }} · {{ s.hours }}</p></div></a>{% endfor %}</div>{% endif %}
+  {% if posts %}<div class="posts">{% for p in posts %}{{ post_card(p, L, lang) }}{% endfor %}</div>{% endif %}
+  {% if q and not posts and not stores %}<div class="empty">{{ t('nothing_found') }}</div>{% endif %}
+</div></section>
+{% endblock %}

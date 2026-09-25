@@ -1,0 +1,16 @@
+{% extends "admin/_layout.html" %}
+{% block body %}
+<div class="top"><h1>Arizalar</h1></div>
+<div class="tabs">{% for k, l in [('', 'Hammasi'), ('contact','Kontakt'), ('partner','Hamkorlik'), ('career','Karyera'), ('loyalty','Keshbek')] %}<a href="/site-admin/submissions{{ '?kind=' ~ k if k }}" class="{{ 'on' if kind == k }}">{{ l }}</a>{% endfor %}</div>
+<div class="card"><table>
+<tr><th>Sana</th><th>Turi</th><th>Ism / Telefon</th><th>Tafsilot</th><th></th></tr>
+{% for s in subs %}<tr class="{{ 'unread' if not s.is_read }}">
+  <td>{{ s.created_at.strftime('%d.%m.%Y %H:%M') if s.created_at }}</td><td><span class="pill">{{ s.kind }}</span></td>
+  <td><b>{{ s.name }}</b><br><a href="tel:{{ s.phone }}">{{ s.phone }}</a></td>
+  <td>{% if s.company %}🏢 {{ s.company }}<br>{% endif %}{% if s.subject %}📌 {{ s.subject }}<br>{% endif %}{{ s.message }}</td>
+  <td><div class="actions">
+    <form method="post" action="/site-admin/submissions/{{ s.id }}/read"><button class="btn sm ghost">{{ '↩︎ O\'qilmagan' if s.is_read else '✓ O\'qildi' }}</button></form>
+    <form method="post" action="/site-admin/submissions/{{ s.id }}/delete" onsubmit="return confirm('O\'chirilsinmi?')"><button class="btn sm red">🗑</button></form></div></td>
+</tr>{% else %}<tr><td colspan="5">Ariza yo'q</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "admin/_layout.html" %}
+{% block body %}
+<div class="top"><h1>Sayt matnlari va sozlamalar</h1></div>
+{% if saved %}<div class="ok">✅ Saqlandi</div>{% endif %}
+<form method="post" enctype="multipart/form-data">
+{% for title, items in groups %}
+<div class="card"><h2>{{ title }}</h2>
+  {% for key, meta, row in items %}{% set label, typ = meta[2], meta[3] %}
+  <div class="f"><label>{{ label }}</label>
+    {% if typ == 'image' %}
+      {% if row and row.value_uz %}<img class="thumb" src="{{ media_url(row.value_uz) }}"><label style="font-weight:700"><input type="checkbox" name="{{ key }}__remove" value="1"> Rasmni o'chirish</label>{% endif %}
+      <input type="file" name="{{ key }}" accept="image/*">
+    {% elif typ == 'plain' %}
+      <input name="{{ key }}__uz" value="{{ row.value_uz if row }}">
+    {% else %}
+      <div class="pair">
+        {% for lg in ['uz','ru'] %}{% set v = (row['value_' ~ lg] if row else '') %}
+        <div>{% if typ == 'textarea' %}<textarea name="{{ key }}__{{ lg }}" placeholder="{{ lg|upper }}">{{ v }}</textarea>{% else %}<input name="{{ key }}__{{ lg }}" value="{{ v }}" placeholder="{{ lg|upper }}">{% endif %}<span class="pair lang" style="display:inline">{{ lg|upper }}</span></div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endfor %}
+<div class="sticky-save"><button class="btn">💾 Saqlash</button></div>
+</form>
+{% endblock %}

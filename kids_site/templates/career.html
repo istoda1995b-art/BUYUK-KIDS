@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_parts.html" import page_hero, sub_form %}
+{% from "_icons.html" import clouds, icon %}
+{% block title %}{{ t('nav_career') }} — Buyuk Kids{% endblock %}
+{% block content %}
+{% call page_hero(t('nav_career'), S.career_intro, t, t('nav_career')) %}{{ clouds() }}{% endcall %}
+<section class="section" style="padding-top:20px"><div class="wrap">
+  <h2 class="section-title" style="margin-bottom:30px">{{ t('vacancies') }}</h2>
+  <div class="vac-list">
+    {% for v in vacancies %}
+    <div class="vac rv">
+      <div>
+        <h3>{{ L(v, 'title') }}</h3>
+        <p>{{ L(v, 'desc') }}</p>
+        <div class="tags">{% if v.salary %}<span class="tag">💰 {{ v.salary }}</span>{% endif %}{% if v.location %}<span class="tag">📍 {{ v.location }}</span>{% endif %}</div>
+      </div>
+      <a href="#form" class="btn btn-blue" data-apply="{{ L(v, 'title') }}">{{ t('apply') }}</a>
+    </div>
+    {% else %}<div class="empty">{{ t('no_vacancies') }}</div>{% endfor %}
+  </div>
+  <div class="two-col" style="margin-top:80px;align-items:start">
+    <div><h2 class="section-title">{{ t('leave_request') }}</h2><p class="section-sub">{{ S.career_intro }}</p></div>
+    <div class="card">{{ sub_form('career', t, sent, ('subject','message')) }}</div>
+  </div>
+</div></section>
+{% endblock %}

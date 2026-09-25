@@ -1,0 +1,112 @@
+{% from "_icons.html" import icon, clouds %}<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Buyuk Kids — {{ 'bolalar supermarketi' if lang == 'uz' else 'детский супермаркет' }}{% endblock %}</title>
+<meta name="description" content="{% block desc %}{{ S.footer_about }}{% endblock %}">
+<link rel="icon" href="/static/img/favicon.png">
+<meta property="og:title" content="Buyuk Kids">
+<meta property="og:image" content="{{ site_url }}/static/img/logo.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ site_url }}{{ path }}">
+<link rel="canonical" href="{{ site_url }}{{ path }}">
+<meta name="keywords" content="Buyuk Kids, bolalar kiyimi, bolalar do'koni, o'yinchoqlar, детская одежда, детский магазин, игрушки, Узбекистан">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Store","name":"Buyuk Kids","url":"{{ site_url }}","logo":"{{ site_url }}/static/img/logo.png","telephone":"{{ S.phone }}","address":{"@type":"PostalAddress","addressLocality":"{{ S.address }}","addressCountry":"UZ"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css?v=5">
+</head>
+<body>
+{% set nav_left = [('/blog', t('nav_blog')), ('/about', t('nav_about'))] %}
+{% set ext = 'target="_blank" rel="noopener"'|safe if order_ext else '' %}
+{% set nav_right = [('/career', t('nav_career')), ('/partners', t('nav_partners')), ('/contacts', t('nav_contacts'))] %}
+<header class="header" id="header">
+  <div class="wrap">
+    <nav class="nav">
+      <div class="nav-side">
+        <button class="circle-btn yellow" data-search aria-label="{{ t('search') }}">{{ icon('search', 24) }}</button>
+        <a href="{{ order_href }}" {{ ext }} class="circle-btn red mob-order" aria-label="{{ S.order_label }}">{{ icon('cart', 22) }}</a>
+        <div class="nav-links">
+          <a href="{{ order_href }}" {{ ext }} class="nav-order">{{ icon('cart', 20) }}{{ S.order_label }}</a>
+          {% for href, label in nav_left %}<a href="{{ href }}" class="{{ 'active' if path.startswith(href) }}">{{ label }}</a>{% endfor %}
+        </div>
+      </div>
+      <a href="/" class="logo-bubble" aria-label="Buyuk Kids"><img src="/static/img/logo.png" alt="Buyuk Kids"></a>
+      <div class="nav-side">
+        <div class="nav-links">
+          {% for href, label in nav_right %}<a href="{{ href }}" class="{{ 'active' if path.startswith(href) }}">{{ label }}</a>{% endfor %}
+        </div>
+        <div class="lang">
+          <a href="/lang/uz?next={{ path }}" class="{{ 'on' if lang == 'uz' }}">UZ</a>
+          <a href="/lang/ru?next={{ path }}" class="{{ 'on' if lang == 'ru' }}">RU</a>
+        </div>
+        <button class="circle-btn burger" data-menu aria-label="Menu">{{ icon('menu', 24) }}</button>
+      </div>
+    </nav>
+  </div>
+</header>
+<div class="header-spacer"></div>
+
+<div class="mnav" id="mnav">
+  <div class="mnav-panel">
+    <button class="mnav-close" data-menu-close aria-label="Close">&times;</button>
+    <a href="{{ order_href }}" {{ ext }} class="nav-order">{{ icon('cart', 22) }}{{ S.order_label }}</a>
+    <a href="/">{{ t('home') }}</a>
+    <a href="/stores">{{ t('nav_stores') }}</a>
+    {% for href, label in nav_left + nav_right %}<a href="{{ href }}">{{ label }}</a>{% endfor %}
+    <a href="/loyalty">{{ t('nav_loyalty') }}</a>
+    <div class="lang">
+      <a href="/lang/uz?next={{ path }}" class="{{ 'on' if lang == 'uz' }}">UZ</a>
+      <a href="/lang/ru?next={{ path }}" class="{{ 'on' if lang == 'ru' }}">RU</a>
+    </div>
+  </div>
+</div>
+
+<div class="search-ov" id="searchOv">
+  <form action="/search" method="get">
+    <input type="search" name="q" placeholder="{{ t('search_ph') }}" autocomplete="off">
+    <button class="circle-btn yellow" type="submit" aria-label="{{ t('search') }}">{{ icon('search', 24) }}</button>
+  </form>
+</div>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="/"><img class="footer-logo" src="/static/img/logo.png" alt="Buyuk Kids"></a>
+        <p>{{ S.footer_about }}</p>
+      </div>
+      <div>
+        <h5>{{ t('navigation') }}</h5>
+        <ul><li><a href="{{ order_href }}" {{ ext }}>{{ S.order_label }}</a></li><li><a href="/stores">{{ t('nav_stores') }}</a></li>{% for href, label in nav_left + nav_right %}<li><a href="{{ href }}">{{ label }}</a></li>{% endfor %}</ul>
+      </div>
+      <div>
+        <h5>{{ t('contacts') }}</h5>
+        <ul>
+          {% if S.phone %}<li><a class="ci" href="tel:{{ S.phone|replace(' ', '') }}">{{ icon('phone', 22) }}{{ S.phone }}</a></li>{% endif %}
+          {% if S.email %}<li><a class="ci" href="mailto:{{ S.email }}">{{ icon('mail', 22) }}{{ S.email }}</a></li>{% endif %}
+          {% if S.address %}<li><span class="ci">{{ icon('pin', 22) }}{{ S.address }}</span></li>{% endif %}
+        </ul>
+      </div>
+      <div>
+        <h5>{{ t('social') }}</h5>
+        <ul class="soc">
+          {% for key, label in [('telegram','Telegram'),('instagram','Instagram'),('youtube','YouTube'),('facebook','Facebook')] %}
+            {% if S[key] %}<li><a href="{{ S[key] }}" target="_blank" rel="noopener">{{ icon(key, 28) }}{{ label }}</a></li>{% endif %}
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© {{ year }} Buyuk Kids. {{ t('rights') }}</span>
+      <a href="#top" data-top>{{ t('to_top') }} {{ icon('up', 20) }}</a>
+    </div>
+  </div>
+</footer>
+<script src="/static/js/main.js?v=1" defer></script>
+</body>
+</html>

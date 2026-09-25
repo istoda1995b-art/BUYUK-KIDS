@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% from "_parts.html" import stores_block, page_hero %}
+{% from "_icons.html" import clouds %}
+{% block title %}{{ t('nav_stores') }} — Buyuk Kids{% endblock %}
+{% block content %}
+{% call page_hero(S.stores_title, None, t, t('nav_stores')) %}{{ clouds('soft') }}{% endcall %}
+<section class="section stores-sec" style="padding-top:20px"><div class="wrap pull-up">{{ stores_block(stores, map_url, L, t) }}</div></section>
+{% endblock %}

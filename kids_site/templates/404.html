@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+{% block content %}
+<section class="section" style="text-align:center;min-height:50vh">
+  <div class="wrap">
+    <div style="font-size:140px;font-weight:900;color:var(--sky);line-height:1">404</div>
+    <h1 style="margin:10px 0 30px">{{ t('not_found') }}</h1>
+    <a href="/" class="btn btn-red">{{ t('home') }} {{ icon('arrow', 22) }}</a>
+  </div>
+</section>
+{% endblock %}
