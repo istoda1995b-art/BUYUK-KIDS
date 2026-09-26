@@ -1,0 +1,14 @@
+<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Buyuk Kids</title><link rel="icon" href="/static/img/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/admin.css?v=1"></head><body>
+<div class="layout">
+<aside class="side">
+  <a href="/site-admin"><img src="/static/img/logo.png" alt=""></a>
+  {% set nav_items = [('/site-admin','📊 Bosh panel'),('/site-admin/settings','✏️ Sayt matnlari'),('/site-admin/categories','🧸 Kategoriyalar'),('/site-admin/stats','🔢 Statistika'),('/site-admin/stores',"🏬 Do'konlar"),('/site-admin/posts','📰 Blog'),('/site-admin/vacancies','💼 Vakansiyalar')] %}
+  {% for href, label in nav_items %}<a href="{{ href }}" class="{{ 'on' if path == href or (href != '/site-admin' and path.startswith(href)) }}">{{ label }}</a>{% endfor %}
+  <a href="/site-admin/submissions" class="{{ 'on' if path.startswith('/site-admin/submissions') }}">📩 Arizalar {% if unread %}<span class="badge">{{ unread }}</span>{% endif %}</a>
+  <div class="bottom"><a href="/" target="_blank">🌐 Saytni ochish</a><a href="/site-admin/logout">🚪 Chiqish</a></div>
+</aside>
+<main class="main">{% block body %}{% endblock %}</main>
+</div></body></html>
